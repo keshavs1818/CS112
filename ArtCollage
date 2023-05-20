@@ -1,0 +1,299 @@
+/*************************************************************************
+ *  Compilation:  javac ArtCollage.java
+ *  Execution:    java ArtCollage Flo2.jpeg
+ *
+ *  @author: Keshav Subramaniyam, RUId:krs227, Email:keshav.s@rutgers.edu
+ *
+ *************************************************************************/
+
+import java.awt.Color;
+
+public class ArtCollage {
+
+    // The orginal picture
+    private Picture original;
+
+    // The collage picture
+    private Picture collage;
+
+    // The collage Picture consists of collageDimension X collageDimension tiles
+    private int collageDimension;
+
+    // A tile consists of tileDimension X tileDimension pixels
+    private int tileDimension;
+    
+    /*
+     * One-argument Constructor
+     * 1. set default values of collageDimension to 4 and tileDimension to 100
+     * 2. initializes original with the filename image
+     * 3. initializes collage as a Picture of tileDimension*collageDimension x tileDimension*collageDimension, 
+     *    where each pixel is black (see all constructors for the Picture class).
+     * 4. update collage to be a scaled version of original (see scaling filter on Week 9 slides)
+     *
+     * @param filename the image filename
+     */
+    public ArtCollage (String filename) {
+        original         = new Picture(filename);
+        tileDimension    = 100; //Default
+        collageDimension = 4;   //Default
+        int imageDim = tileDimension * collageDimension;
+        collage = new Picture(imageDim, imageDim);
+
+        for(int i = 0; i < imageDim; i++) {
+            for(int j = 0; j < imageDim; j++) {
+                int scol = i * original.width() / imageDim;
+                int srow = j * original.height() / imageDim;
+                Color color = original.get(scol, srow);
+                collage.set(i, j, color);
+            }
+        }
+    }
+
+    /*
+     * Three-arguments Constructor
+     * 1. set default values of collageDimension to cd and tileDimension to td
+     * 2. initializes original with the filename image
+     * 3. initializes collage as a Picture of tileDimension*collageDimension x tileDimension*collageDimension, 
+     *    where each pixel is black (see all constructors for the Picture class).
+     * 4. update collage to be a scaled version of original (see scaling filter on Week 9 slides)
+     *
+     * @param filename the image filename
+     */
+    public ArtCollage (String filename, int td, int cd) {
+        original         = new Picture(filename);
+        tileDimension    = td;
+        collageDimension = cd;
+        int imageDim = tileDimension * collageDimension;
+        collage = new Picture(imageDim, imageDim);
+
+        for(int i = 0; i < imageDim; i++) {
+            for(int j = 0; j < imageDim; j++) {
+                int scol = i * original.width() / imageDim;
+                int srow = j * original.height() / imageDim;
+                Color color = original.get(scol, srow);
+                collage.set(i, j, color);
+            }
+        }
+    }
+
+    /*
+     * Returns the collageDimension instance variable
+     *
+     * @return collageDimension
+     */
+    public int getCollageDimension() {
+        return collageDimension;
+    }
+
+    /*
+     * Returns the tileDimension instance variable
+     *
+     * @return tileDimension
+     */
+    public int getTileDimension() {
+        return tileDimension;
+    }
+
+    /*
+     * Returns original instance variable
+     *
+     * @return original
+     */
+    public Picture getOriginalPicture() {
+        return original;
+    }
+
+    /*
+     * Returns collage instance variable
+     *
+     * @return collage
+     */
+    public Picture getCollagePicture() {
+        return collage;
+    }
+    
+    /*
+     * Display the original image
+     * Assumes that original has been initialized
+     */
+    public void showOriginalPicture() {
+        original.show();
+    }
+
+    /*
+     * Display the collage image
+     * Assumes that collage has been initialized
+     */
+    public void showCollagePicture() {
+        collage.show();
+    }
+
+    /*
+     * Replaces the tile at collageCol,collageRow with the image from filename
+     * Tile (0,0) is the upper leftmost tile
+     *
+     * @param filename image to replace tile
+     * @param collageCol tile column
+     * @param collageRow tile row
+     */
+    public void replaceTile (String filename,  int collageCol, int collageRow) {
+        // Creating The Replaced Photo
+        Picture replacedPic = new Picture(filename);
+        int imageDim = tileDimension * collageDimension;
+        Picture replaced_collage = new Picture(imageDim, imageDim);
+
+        for(int i = 0; i < imageDim; i++) {
+            for(int j = 0; j < imageDim; j++) {
+                int scol = i * replacedPic.width() / imageDim;
+                int srow = j * replacedPic.height() / imageDim;
+                Color color = replacedPic.get(scol, srow);
+                replaced_collage.set(i, j, color);
+            }
+        }
+        // Actual replacement
+        int startCollageCol = tileDimension * collageCol;
+        int endCollageCol = tileDimension * (collageCol + 1);
+        int startCollageRow = tileDimension * collageRow;
+        int endCollageRow = tileDimension * (collageRow + 1);
+        for(int k = startCollageCol; k < endCollageCol; k++) {
+            for(int l = startCollageRow; l < endCollageRow; l++) {
+                Color color = replaced_collage.get(((k - startCollageCol) * collageDimension), ((l - startCollageRow) * collageDimension));
+                collage.set(k, l, color);
+            }
+        }
+    }
+    
+    /*
+     * Makes a collage of tiles from original Picture
+     * original will have collageDimension x collageDimension tiles, each tile
+     * has tileDimension X tileDimension pixels
+     */
+    public void makeCollage () {
+        // Code for truncated collage
+        Picture truncated_collage = new Picture(tileDimension, tileDimension);
+        for(int i = 0; i < tileDimension; i++) {
+            for(int j = 0; j < tileDimension; j++) {
+                int oneDimension = collageDimension * tileDimension;
+                int scol = i * original.width() / tileDimension;
+                int srow = j * original.height() / tileDimension;
+                Color color = original.get(scol, srow);
+                truncated_collage.set(i, j, color);
+            }
+        }
+        // Code for making collage
+        for(int j = 0; j < collageDimension; j++) {
+            int imageDim = collageDimension * tileDimension;
+            int startCollageDim = tileDimension * j;
+            int endCollageDim = tileDimension * (j + 1);
+            int tileshift = 0;
+            for(int k = 0; k < imageDim; k++) {
+               for(int l = startCollageDim; l < endCollageDim; l++) {
+                   for(int i = 1; i < collageDimension; i++) {
+                       if(k == tileDimension * i) {
+                           tileshift = 0;
+                       }
+                   }
+                   Color color = truncated_collage.get(tileshift, l - (tileDimension * j));
+                   collage.set(k, l, color);
+                }
+                tileshift++;
+            }
+        }      
+    }
+
+    /*
+     * Colorizes the tile at (collageCol, collageRow) with component 
+     * (see CS111 Week 9 slides, the code for color separation is at the 
+     *  book's website)
+     *
+     * @param component is either red, blue or green
+     * @param collageCol tile column
+     * @param collageRow tile row
+     */
+    public void colorizeTile (String component,  int collageCol, int collageRow) {
+        int redDim = 0;
+        int greenDim = 0;
+        int blueDim = 0;
+
+        // Actual replacement
+        int startCollageCol = tileDimension * collageCol;
+        int endCollageCol = tileDimension * (collageCol + 1);
+        int startCollageRow = tileDimension * collageRow;
+        int endCollageRow = tileDimension * (collageRow + 1);
+        for(int k = startCollageCol; k < endCollageCol; k++) {
+            for(int l = startCollageRow; l < endCollageRow; l++) {
+                int redFull   = collage.get(k, l).getRed();
+                int greenFull = collage.get(k, l).getGreen();
+                int blueFull  = collage.get(k, l).getBlue();
+                if(component.equals("red")) {
+                    redDim = redFull;
+                    greenDim = 0;
+                    blueDim = 0;
+                } else if(component.equals("green")) {
+                    redDim = 0;
+                    greenDim = greenFull;
+                    blueDim = 0;
+                } else if(component.equals("blue")) {
+                    redDim = 0;
+                    greenDim = 0;
+                    blueDim = blueFull;
+                }
+                Color color = new Color(redDim, greenDim, blueDim);
+                collage.set(k, l, color);
+            }
+        }
+    }
+
+
+    /*
+     * Grayscale tile at (collageCol, collageRow)
+     * (see CS111 Week 9 slides, the code for luminance is at the book's website)
+     *
+     * @param collageCol tile column
+     * @param collageRow tile row
+     */
+
+    public void grayscaleTile (int collageCol, int collageRow) {
+        int counter = 0;
+        // Gray scaling
+        int startCollageCol = tileDimension * collageCol;
+        int endCollageCol = tileDimension * (collageCol + 1);
+        int startCollageRow = tileDimension * collageRow;
+        int endCollageRow = tileDimension * (collageRow + 1);
+        for(int k = startCollageCol; k < endCollageCol; k++) {
+            for(int l = startCollageRow; l < endCollageRow; l++) {
+                Color color = collage.get(k, l);
+                Color gray = Luminance.toGray(color);
+                collage.set(k, l, gray);
+                counter++;
+            }
+        }
+    }
+
+    /*
+     *
+     *  Test client: use the examples given on the assignment description to test your ArtCollage
+     */
+    public static void main (String[] args) {
+
+        //ArtCollage art = new ArtCollage(args[0]);
+        ArtCollage art = new ArtCollage(args[0], 200, 3);
+        art.makeCollage();
+
+        // Replace 3 tiles 
+        art.replaceTile(args[1],0,1);
+        art.replaceTile(args[2],1,0);
+        art.replaceTile(args[3],1,1);
+        art.colorizeTile("green",0,0);
+        art.colorizeTile("red",1,0);
+        art.colorizeTile("blue",0,1);
+        art.colorizeTile("green",1,1);
+        art.replaceTile(args[2],2,1);
+        art.replaceTile(args[3],2,2);
+        art.grayscaleTile(2, 1);
+        art.grayscaleTile(2, 2);
+
+        art.showCollagePicture();
+
+    }
+}
