@@ -1,0 +1,292 @@
+package trie;
+
+import java.util.ArrayList;
+
+/**
+ * This class implements a Trie. 
+ * 
+ * @author Sesh Venugopal
+ *
+ */
+/* #########################################################################################
+###        Name: Keshav Subramaniyam
+###     RUID: 199001444
+###     Email: krs227@scarletmail.rutgers.edu
+###     Date: 03/14/2021
+###     Version: 3
+############################################################################################*/
+
+public class Trie {
+    
+    // prevent instantiation
+    private Trie() { }
+    
+    /**
+     * Builds a trie by inserting all words in the input array, one at a time,
+     * in sequence FROM FIRST TO LAST. (The sequence is IMPORTANT!)
+     * The words in the input array are all lower case.
+     * 
+     * @param allWords Input array of words (lowercase) to be inserted.
+     * @return Root of trie with all words inserted from the input array
+     */
+        /*private static int minStringLength(String[] allWords) {
+        int min = allWords[0].length();
+        for(int i = 1; i < allWords.length; i++) {
+            if(allWords[i].length() < min) {
+                min = allWords[i].length();
+            }
+        }
+        return min;
+    }*/
+
+    private static short findPrefixWord(String[] allWords, short prefixStart) {
+        short finalNum = 0;
+        short endNum = (short) (prefixStart + 1);
+        if(allWords.length == 1) {
+            finalNum = (short) (allWords[0].length() - 1);
+        }
+        while(endNum < allWords.length + 1) {
+            for(int i = 1; i < allWords.length; i++) {
+                String startChecker = allWords[0].substring(prefixStart, endNum);
+                String endChecker = allWords[i].substring(prefixStart, endNum);
+                System.out.println(startChecker + " " + endChecker);
+                if(startChecker.equals(endChecker)) {
+                   finalNum = (short) (i - 1);
+                }
+                //System.out.println(endNum + " " + finalNum);
+            }
+            
+            endNum++;
+        }
+        
+        return finalNum;
+    }
+
+
+    public static TrieNode buildTrie( String[] allWords ) {
+        TrieNode rootNode = new TrieNode(null, null, null);
+        TrieNode tailNode = new TrieNode(null, null, null);
+        
+        if ( allWords == null || allWords.length == 0 ) {
+            return rootNode;
+        } 
+
+        Indexes wordIndex = new Indexes(0, (short) 0, (short) (allWords[0].length() - 1));
+        rootNode.firstChild = new TrieNode(wordIndex, null, null);
+        TrieNode loopNode = rootNode.firstChild;
+
+        for( int i=1; i< allWords.length; i++ ) {
+            insertNewNode( allWords, i, rootNode );
+        }
+
+        return rootNode;
+    }
+    
+    private static void  insertNewNode( String[] allWords, int i, TrieNode root ){
+        // Linked nodes
+        TrieNode builthead = null;
+        TrieNode trietail = null;
+        TrieNode wordNode = null;
+        TrieNode firstChild = null;
+        TrieNode sibling = null;
+        Indexes substr = new Indexes(0, (short) (0), (short) (0));
+        TrieNode siblingNode = new TrieNode(substr, null, null);
+        // Used for pure linking
+    
+        // Actual method
+        int count = 0;
+            
+        int changeIndex = 0;
+        int temp = 0;
+
+        TrieNode tailNode = new TrieNode(null, null, null);
+        boolean foundFlag = false;
+        int wordIndex = 0;
+        short start = 0;
+        short end = 0;
+
+        TrieNode loopNode = root.firstChild;
+        while (  loopNode != null &&  !foundFlag ) {
+            tailNode = loopNode;
+            wordIndex = loopNode.substr.wordIndex;
+            start     = loopNode.substr.startIndex;
+            end       = loopNode.substr.endIndex;
+            //String str = allWords[ loopNode.substr.wordIndex ].substring(loopNode.substr.startIndex, loopNode.substr.endIndex+1);
+            String str     = allWords[ wordIndex ].substring(start, end+1);
+            String prefix  = allWords[i].substring(start, allWords[i].length());
+            short matchValue = prefixMatch( str, prefix );
+
+            if ( matchValue > 0 ) {
+                if ( loopNode.firstChild == null ) {
+                    Indexes  rightsubstr = new Indexes(i, (short) (start + matchValue), (short) (allWords[i].length() - 1));
+                    TrieNode rightNode   = new TrieNode(rightsubstr, null, null);
+
+                    //Indexes  leftsubstr  = new Indexes(tailNode.substr.wordIndex, (short) (matchValue), (short) (allWords[tailNode.substr.wordIndex].length() - 1));
+                    Indexes  leftsubstr  = new Indexes(wordIndex, (short) (start + matchValue), (short) (allWords[wordIndex].length() - 1));
+                    TrieNode leftNode    = new TrieNode(leftsubstr, null, rightNode);
+                    //loopNode.substr = new Indexes(tailNode.substr.wordIndex, (short) start, (short) (matchValue - 1));
+                    loopNode.substr = new Indexes(wordIndex, (short) start, (short) (start + matchValue - 1));
+                    loopNode.firstChild = leftNode;
+                } else {
+                    if ( matchValue == str.length() ) {
+                        insertNewNode( allWords, i, tailNode );
+                    } else {
+                        Indexes  rightsubstr = new Indexes(i, (short) (matchValue), (short) (allWords[i].length() - 1));
+                        TrieNode rightNode   = new TrieNode(rightsubstr, null, null);
+    
+                        //Indexes  leftsubstr  = new Indexes(tailNode.substr.wordIndex, (short) matchValue, (short) (tailNode.substr.endIndex));
+                        Indexes  leftsubstr  = new Indexes(wordIndex, (short) matchValue, (short) (end));
+                        TrieNode leftNode    = new TrieNode(leftsubstr, loopNode.firstChild, rightNode);
+                        //loopNode.substr = new Indexes(tailNode.substr.wordIndex, (short) start, (short) ( matchValue - 1));
+                        loopNode.substr = new Indexes(wordIndex, (short) start, (short) (start + matchValue - 1));
+                        loopNode.firstChild = leftNode;    
+                    }
+                }
+                foundFlag = true;
+            }
+
+            loopNode = loopNode.sibling;
+        }
+
+        if ( !foundFlag ) {
+            Indexes ind = new Indexes(i, (short) start, (short) (allWords[i].length()-1));
+            tailNode.sibling = new TrieNode( ind, null, null);
+            tailNode = new TrieNode( ind, null, null);
+        }
+    }
+    /**
+     * Given a trie, returns the "completion list" for a prefix, i.e. all the leaf nodes in the 
+     * trie whose words start with this prefix. 
+     * For instance, if the trie had the words "bear", "bull", "stock", and "bell",
+     * the completion list for prefix "b" would be the leaf nodes that hold "bear", "bull", and "bell"; 
+     * for prefix "be", the completion would be the leaf nodes that hold "bear" and "bell", 
+     * and for prefix "bell", completion would be the leaf node that holds "bell". 
+     * (The last example shows that an input prefix can be an entire word.) 
+     * The order of returned leaf nodes DOES NOT MATTER. So, for prefix "be",
+     * the returned list of leaf nodes can be either hold [bear,bell] or [bell,bear].
+     *
+     * @param root Root of Trie that stores all words to search on for completion lists
+     * @param allWords Array of words that have been inserted into the trie
+     * @param prefix Prefix to be completed with words in trie
+     * @return List of all leaf nodes in trie that hold words that start with the prefix, 
+     *             order of leaf nodes does not matter.
+     *         If there is no word in the tree that has this prefix, null is returned.
+     */
+
+
+    public static ArrayList<TrieNode> completionList(TrieNode root, String[] allWords, String prefix) {
+        ArrayList<TrieNode> wordswithPrefix = new ArrayList<TrieNode>();
+        if ( root == null ) { return wordswithPrefix; }
+
+        wordswithPrefix = getWordsWithPrefix( root, allWords, prefix );
+        if ( wordswithPrefix == null || wordswithPrefix.size() == 0 ) { wordswithPrefix = null;}
+
+        return wordswithPrefix;
+    }
+
+    private static ArrayList<TrieNode>  getWordsWithPrefix(TrieNode root, String[] allWords, String prefix) {
+        ArrayList<TrieNode> wordswithPrefix = new ArrayList<TrieNode>();
+        boolean foundFlag = false;
+        int wordIndex = 0;
+        short start = 0;
+        short end = 0;
+        TrieNode loopNode = root.firstChild;
+        while (  loopNode != null &&  !foundFlag ) {
+            wordIndex = loopNode.substr.wordIndex;
+            start     = loopNode.substr.startIndex;
+            end       = loopNode.substr.endIndex;
+            String str   = allWords[ wordIndex ].substring(start, end+1);
+            short matchValue = prefixMatch( str, prefix );
+            if ( matchValue == 0 ) {
+                loopNode = loopNode.sibling;
+            } else {
+                if ( matchValue == prefix.length() ) {
+                    if ( loopNode.firstChild == null ) {
+                        wordswithPrefix.add( loopNode );
+                    } else {
+                        wordswithPrefix = getAllNodes( loopNode.firstChild, allWords );
+                    }
+                } else {
+                    if ( matchValue == str.length() ) {
+                            wordswithPrefix = getWordsWithPrefix(loopNode, allWords, prefix.substring(matchValue, prefix.length()));
+                    }
+                }
+                foundFlag = true;
+            }
+        }        
+        
+        if ( wordswithPrefix == null ||  wordswithPrefix.size() == 0 ) { wordswithPrefix = null;}
+        return wordswithPrefix;
+    }
+    
+    private static ArrayList<TrieNode> getAllNodes( TrieNode node, String[] allWords ) {
+        ArrayList<TrieNode> wordswithPrefix = new ArrayList<TrieNode>();
+
+        while ( node != null ) {
+            if ( node.firstChild == null ) {
+                wordswithPrefix.add( node );
+            } else {
+                ArrayList<TrieNode> wp = new ArrayList<TrieNode>();
+                wp = getAllNodes( node.firstChild, allWords);
+                for( int i =0; i < wp.size(); i++ ){
+                    wordswithPrefix.add( wp.get(i) );
+                }
+            }
+            node = node.sibling;
+        }
+        
+        return wordswithPrefix;
+    }
+
+    private static short prefixMatch( String str, String prefix) {
+        short ret = 0;
+        boolean notFoundMatch = false;
+
+        while ( ret < str.length() && ret < prefix.length() && !notFoundMatch ) {
+            if ( str.charAt(ret) == prefix.charAt(ret) ) {
+                ret++;
+            } else {
+                notFoundMatch = true;
+            }
+        }
+        return ret;
+    }
+
+    public static void print(TrieNode root, String[] allWords) {
+        System.out.println("\nTRIE\n");
+        print(root, 1, allWords);
+    }
+    
+    private static void print(TrieNode root, int indent, String[] words) {
+        if (root == null) {
+            return;
+        }
+        for (int i=0; i < indent-1; i++) {
+            System.out.print("    ");
+        }
+        
+        if (root.substr != null) {
+            String totalWord = words[root.substr.wordIndex];
+            String pre = totalWord.substring(0, root.substr.endIndex+1);
+            System.out.println("      " + pre);
+        }
+        
+        for (int i=0; i < indent-1; i++) {
+            System.out.print("    ");
+        }
+        System.out.print(" ---");
+        if (root.substr == null) {
+            System.out.println("root");
+        } else {
+            System.out.println(root.substr);
+        }
+        
+        for (TrieNode ptr=root.firstChild; ptr != null; ptr=ptr.sibling) {
+            for (int i=0; i < indent-1; i++) {
+                System.out.print("    ");
+            }
+            System.out.println("     |");
+            print(ptr, indent+1, words);
+        }
+    }
+}
