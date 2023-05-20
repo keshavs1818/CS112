@@ -1,0 +1,197 @@
+package poly;
+
+import java.io.IOException;
+import java.util.Scanner;
+/*#############################################################################################
+    This class implements evaluate, add and multiply for polynomials.
+    Name: Keshav Subramaniyam
+    Email: krs227@scarletmail.rutgers.edu
+    RUID: 199001444
+    Version: 5
+#############################################################################################*/
+
+public class Polynomial {
+    /**
+     * Reads a polynomial from an input stream (file or keyboard). The storage format
+     * of the polynomial is:
+     * <pre>
+     *     <coeff> <degree>
+     *     <coeff> <degree>
+     *     ...
+     *     <coeff> <degree>
+     * </pre>
+     * with the guarantee that degrees will be in descending order. For example:
+     * <pre>
+     *      4 5
+     *     -2 3
+     *      2 1
+     *      3 0
+     * </pre>
+     * which represents the polynomial:
+     * <pre>
+     *      4*x^5 - 2*x^3 + 2*x + 3 
+     * </pre>
+     * 
+     * @param sc Scanner from which a polynomial is to be read
+     * @throws IOException If there is any input error in reading the polynomial
+     * @return The polynomial linked list (front node) constructed from coefficients and
+     *         degrees read from scanner
+     */
+    public static Node read(Scanner sc) 
+    throws IOException {
+        Node poly = null;
+        while (sc.hasNextLine()) {
+            Scanner scLine = new Scanner(sc.nextLine());
+            poly = new Node(scLine.nextFloat(), scLine.nextInt(), poly);
+            scLine.close();
+        }
+        return poly;
+    }
+
+    private static Node copyPolynomial( Node poly ){
+        Node resultPoly  = null;
+        Node p1 = poly;
+        Node a1 = null;
+        int count = 0;
+        Node tp = null;
+        while ( p1 != null ) {
+            if ( p1.term.coeff != 0 ) {
+                a1 = new Node( p1.term.coeff, p1.term.degree, null);
+                if ( count == 0 ) { resultPoly = a1; } else { tp.next = a1;}
+                tp = a1;
+                count++;
+            } 
+            p1 = p1.next;
+        }
+        
+        return resultPoly;
+    }
+
+    /**
+     * Returns the sum of two polynomials - DOES NOT change either of the input polynomials.
+     * The returned polynomial MUST have all new nodes. In other words, none of the nodes
+     * of the input polynomials can be in the result.
+     * 
+     * @param poly1 First input polynomial (front of polynomial linked list)
+     * @param poly2 Second input polynomial (front of polynomial linked list
+     * @return A new polynomial which is the sum of the input polynomials - the returned node
+     *         is the front of the result polynomial
+     */
+    public static Node add(Node poly1, Node poly2) {
+
+        if ( poly1 == null && poly2 == null ) { return null; }
+        //Do not touch Poly 1 or Poly2 parameters
+        Node p1 = Polynomial.copyPolynomial( poly1 );
+        Node p2 = Polynomial.copyPolynomial( poly2 );
+
+        if ( p1 == null ) { return p2; }
+        if ( p2 == null ) { return p1; }
+
+        int d1 = 0;
+        int d2 = 0;
+        Node tp = null;
+        Node a1 = null;
+        Node sumPoly = null;
+        int count = 0;
+
+        while ( (p1 != null) || (p2 != null)  ) {
+            if ( p1 != null ) { d1 = p1.term.degree; } else { d1 = Integer.MAX_VALUE; }
+            if ( p2 != null ) { d2 = p2.term.degree; } else { d2 = Integer.MAX_VALUE; }
+
+            if ( d1 == d2 ) {
+                a1 = new Node((p1.term.coeff + p2.term.coeff), d1, null);
+                p1 = p1.next;
+                p2 = p2.next;
+            } else if ( d1 < d2  ) {
+                a1 = new Node(p1.term.coeff, d1, null);
+                p1 = p1.next;
+            } else if ( d1 > d2  ) {
+                a1 = new Node(p2.term.coeff, d2, null);
+                p2 = p2.next;
+            } 
+
+            if ( count == 0 ) {    sumPoly = a1; } else { tp.next = a1; }
+            tp = a1;
+            count++;
+        }
+
+        sumPoly = Polynomial.copyPolynomial( sumPoly );
+        return sumPoly;
+    }
+    
+    /**
+     * Returns the product of two polynomials - DOES NOT change either of the input polynomials.
+     * The returned polynomial MUST have all new nodes. In other words, none of the nodes
+     * of the input polynomials can be in the result.
+     * 
+     * @param poly1 First input polynomial (front of polynomial linked list)
+     * @param poly2 Second input polynomial (front of polynomial linked list)
+     * @return A new polynomial which is the product of the input polynomials - the returned node
+     *         is the front of the result polynomial
+     */
+    public static Node multiply(Node poly1, Node poly2) {
+
+        if (poly1 == null && poly2 == null) { return null;    }
+        //Do not touch Poly 1 or Poly2 parameters
+        Node p1 = Polynomial.copyPolynomial( poly1 );
+        Node p2 = Polynomial.copyPolynomial( poly2 );
+
+        if ( p1 == null ) {    return null; } 
+        if ( p2 == null ) {    return null; } 
+
+        Node mp1 = null; Node mp2 = null; 
+        Node tp  = null; Node a1  = null;
+        float mcoeff = 0;
+        int   mdegree = 0;
+        
+        mp1 = new Node(0, 0, null);
+        for ( Node x = p1; x != null; x = x.next )    {
+            int count = 0 ;
+            tp = null;
+            for (Node y = p2; y != null; y = y.next ) {
+                mcoeff  = x.term.coeff  * y.term.coeff;
+                mdegree = x.term.degree + y.term.degree;
+                a1 = new Node(mcoeff, mdegree, null);
+                if ( count == 0 ) { mp2 = a1; }    else { tp.next = a1; }
+                tp = a1;
+                count++;
+            }
+            mp1 = Polynomial.add( mp1, mp2 ); 
+        }
+
+        mp1 = Polynomial.copyPolynomial( mp1 );
+        return mp1;
+    }    
+    /**
+     * Evaluates a polynomial at a given value.
+     * 
+     * @param poly Polynomial (front of linked list) to be evaluated
+     * @param x Value at which evaluation is to be done
+     * @return Value of polynomial p at x
+     */
+    public static float evaluate(Node poly, float x) {
+        float evalNum = 0;
+        while ( poly != null ) {
+            evalNum += poly.term.coeff * Math.pow(x, poly.term.degree);
+            poly = poly.next;
+        }
+        return evalNum;
+    }
+    
+    /**
+     * Returns string representation of a polynomial
+     * 
+     * @param poly Polynomial (front of linked list)
+     * @return String representation, in descending order of degrees
+     */
+    public static String toString(Node poly) {
+        if (poly == null) {
+            return "0";
+        }         
+        String retval = poly.term.toString();
+        for (Node current = poly.next ; current != null ; current = current.next) {
+            retval = current.term.toString() + " + " + retval;
+        }
+        return retval;
+    }    
+}
