@@ -1,0 +1,569 @@
+package friends;
+
+/*#########################################################################################
+###        Name: Keshav Subramaniyam
+###     RUID: 199001444
+###     Email: krs227@scarletmail.rutgers.edu
+###     Date: 05/03/2021
+###     Version: 7
+###     Assignment: Friends (Graphs)
+############################################################################################*/
+
+import java.util.ArrayList;
+import structures.Queue;
+import structures.Stack;
+
+public class Friends {
+
+    private static boolean[] personVisitedArr ;
+    private static ArrayList<String> cliques ;
+
+    /**
+     * Finds the shortest chain of people from p1 to p2.
+     * Chain is returned as a sequence of names starting with p1,
+     * and ending with p2. Each pair (n1,n2) of consecutive names in
+     * the returned chain is an edge in the graph.
+     * 
+     * @param g Graph for which shortest chain is to be found.
+     * @param p1 Person with whom the chain originates
+     * @param p2 Person at whom the chain terminates
+     * @return The shortest chain from p1 to p2. Null or empty array list if there is no
+     *         path from p1 to p2
+     */
+    //private static ArrayList<Boolean> visited = new ArrayList<Boolean>();
+    private static boolean[] stackVisited;
+    private static String person1;
+    private static String person2;
+    private static ArrayList<String> shortestChain;
+    private static Stack<String> stack = new Stack<String>();
+    private static ArrayList<String> stackArr;
+    private static boolean[] inStack;
+
+    private static void NOT_USED_BFSShortestPath(Graph g, int index) {
+        //boolean[] visited = new boolean[g.members.length];
+        //boolean[] stackVisited;
+        //String person1;
+        //String person2;
+        //ArrayList<String> shortestChain;
+        //Stack<String> stack = new Stack<String>();
+        //ArrayList<String> stackArr;
+            
+        String p1 = g.members[index].name;
+        if ( stackArr.contains(p1) ) {
+            return;
+        }     
+        if ( stackVisited[index] ) {
+            //return;
+        } 
+        
+        System.out.println( ">>>> Push >> " + p1);
+        stack.push( p1 );
+        stackArr.add( p1 );
+    
+        //Check for person 2
+        if ( p1.equals( person2 ) ) {
+
+            if ( shortestChain == null || shortestChain.size() == 0 ) {
+                shortestChain  = new ArrayList<String>();
+                for ( int i=0; i < stackArr.size(); i++) {
+                    shortestChain.add( stackArr.get(i) );
+                }
+                System.out.println( ">>>>>>>>>>>>>>>> (1) " + shortestChain );
+            } else if (stackArr.size() < shortestChain.size() ) 
+            {
+                shortestChain  = new ArrayList<String>();
+
+                for ( int i=0; i < stackArr.size(); i++){
+                    shortestChain.add( stackArr.get(i) );
+                }
+                System.out.println( ">>>>>>>>>>>>>>>> (2) " + shortestChain );
+            }
+            else     System.out.println( ">>>>>>>>>>>>>>>> (3) " + shortestChain );
+
+            boolean allFlag = true; 
+            for ( int i =0; i< stackVisited.length; i++ ) {
+                if ( ! stackVisited[i] ){
+                    allFlag = false;
+                }
+            }
+
+            if (!allFlag ){
+                System.out.println( ">>>> Pop (1) " + p1);
+
+                stack.pop();
+                stackArr.remove( p1 );
+                return;    
+            }
+        }
+
+        boolean allTraversed = true;
+        Friend f = g.members[index].first;
+        while ( f != null ) {
+            int k = f.fnum;
+            //if ( !stackVisited[k] || !stackArr.contains( g.members[k].name ) ){
+            if ( !stackArr.contains( g.members[k].name ) ){
+                    allTraversed = false;
+            }
+            f = f.next;
+        }
+
+        if ( allTraversed ) {
+
+            System.out.println( ">>>> Pop (2) " + p1);
+            String str = stack.pop();
+            stackArr.remove( str );
+            stackVisited[index] = true;
+            return;
+
+        } else {
+
+            f = g.members[index].first;
+
+            while ( f != null ) {
+                int k = f.fnum;
+                NOT_USED_BFSShortestPath(g, k);
+                f = f.next;
+            }
+
+            System.out.println( ">>>> Pop (3) " + p1);
+            String str = stack.pop();
+            stackArr.remove( str );
+            stackVisited[index] = true;
+        }        
+
+    }
+
+    private static int[] countStack;
+    private static int countShotest = 0;
+
+    private static void ShortestPath(Graph g, int index) {        
+        String p1 = g.members[index].name;
+        if ( stackVisited[index]  ) return;
+        //Check infinite loop
+        if ( countStack[index] > 100000 ) return;
+        countStack[index]++;
+
+        if ( p1.equals( person2 ) ) {
+            if ( shortestChain == null || shortestChain.size() == 0 || stackArr.size() < shortestChain.size() ) {
+                shortestChain  = new ArrayList<String>();
+                for ( int i=0; i < stackArr.size(); i++){
+                    shortestChain.add( stackArr.get(i) );
+                }
+                shortestChain.add( p1 );
+                //System.out.println( ">>>>>>>>>>>>>>>> (running shortestChain) " + shortestChain );
+            }
+
+            return;    
+        }
+
+        //System.out.println( ">> Push >> " + p1);
+        stack.push( p1 );
+        stackArr.add( p1 );
+        stackVisited[index] = true;
+
+        Friend f = g.members[index].first;
+        while ( f != null ) {
+            int k = f.fnum;
+            ShortestPath(g, k);
+            f = f.next;
+        }
+
+        //System.out.println( "    >>>> Pop  " + p1);
+        String str = stack.pop();
+        stackArr.remove( str );
+        stackVisited[index] = false;
+    }
+
+    public static ArrayList<String> shortestChain(Graph g, String p1, String p2) {
+        //ArrayList<String> shortestChain = new ArrayList<String>();
+
+        // Call the shortestChain method and return the strarr mentioned.
+        ArrayList<String> personNames = new ArrayList<String>();
+        for(int i = 0; i < g.members.length; i++) {
+            personNames.add(g.members[i].name);
+        }
+
+        int index = personNames.indexOf( p1 );
+
+        person1 = p1;
+        person2 = p2;
+        stackVisited = new boolean[ g.members.length ] ;
+        inStack = new boolean[ g.members.length ] ;
+        stack = new Stack<String>();
+        stackArr = new ArrayList<String>();
+        shortestChain = new ArrayList<String>();
+        countStack = new int[ g.members.length ];
+        
+        if( personNames.contains(p1) &&  personNames.contains(p2)  ) {
+            ShortestPath(g, index);
+            //System.out.println(personNames.indexOf(p1));
+        } else {
+            shortestChain = null;
+        }
+
+        if ( shortestChain != null && shortestChain.size() == 0) shortestChain = null;
+
+        return shortestChain;
+    }
+
+    /*
+    private static ArrayList<String> BFSShortestPath(Graph g, String p1, String p2) {
+        ArrayList<String> strarr = new ArrayList<String>();
+        Stack<String> stack = new Stack<String>();
+        personVisitedArr = new boolean[g.members.length];
+        for ( int i = 0; i < g.members.length; i++ ) {
+            personVisitedArr[i] = false;
+        }
+        personVisitedArr[index] = true;
+        stack.push(g.members[index].name);
+        strarr.add(g.members[index].name);
+        Friend startingFriend = g.members[index].first;
+        while(startingFriend != null) {
+            if ( !visited[startingFriend.fnum] ) {
+
+            } else 
+            stack.push( g.members[index].name );
+            startingFriend = startingFriend.next;
+        }
+        System.out.println( stack.size() );
+        return strarr;
+    }
+
+    public static ArrayList<String> shortestChain(Graph g, String p1, String p2) {
+        ArrayList<String> shortestChain = new ArrayList<String>();
+
+        // Call the shortestChain method and return the strarr mentioned.
+        ArrayList<String> personNames = new ArrayList<String>();
+        for (int i = 0; i < g.members.length; i++) {
+            personNames.add(g.members[i].name);
+        }
+
+        person1 = p1;
+        person2 = p2;
+        stackVisited = new boolean[ g.members.length ] ;
+        if ( personNames.contains(p1) &&  personNames.contains(p2)  ) {
+            shortestChain = BFSShortestPath(g, p1, p2);
+            //System.out.println(personNames.indexOf(p1));
+        } else {
+            shortestChain = null;
+        }
+        //shortestChain = BFSShortestPath(0, g, p2);
+        return shortestChain;
+    }
+    
+
+    */
+
+    /**
+     * Finds all cliques of students in a given school.
+     * 
+     * Returns an array list of array lists - each constituent array list contains
+     * the names of all students in a clique.
+     * 
+     * @param g Graph for which cliques are to be found.
+     * @param school Name of school
+     * @return Array list of clique array lists. Null or empty array list if there is no student in the
+     *         given school
+     */
+
+
+     private static void traverse(Graph g, String school, int index) {
+        // Create a boolean array of visited people and populate the array.
+        //creating a clique arraylist. add first name to clique.
+        //boolean[]  visited = new boolean[];
+
+        if ( personVisitedArr[index] ) {
+            return;
+        } else {
+            personVisitedArr[index] = true;
+        }
+        
+        if ( g.members[index].student == true ) {
+
+          if ( g.members[index].school.equals( school ) ) {
+                cliques.add(g.members[index].name);
+          } else 
+          {
+              return;
+          }
+
+        } else {
+            return;
+        }
+
+        Friend f = g.members[index].first;
+        while ( f != null ) {
+            traverse(g, school, f.fnum);
+            f = f.next;
+        }
+
+        /*
+        //Create the pointer for linked list.
+        Friend startingFriend = g.members[s].first;
+        while( startingFriend != null) {
+           int j = startingFriend.fnum;
+            String p1 = g.members[j].name;
+
+           // Add adjacent vertex to clique if it is not visited.
+        if ( !visited[j] ) {
+            visited[j] = true;
+            // Make sure friend vertex is a student and also has same school as s
+            if ( g.members[j].student == true ) {
+                if ( g.members[j].school.equals(g.members[s].school) ) {
+                    cliques.add( p1 ); 
+                    // find adjacent vertices within to make sure there is a legitimate clique
+                    Friend startingFriend2 = g.members[j].first;
+                    //System.out.println(startingFriend2);
+                    while(startingFriend2 != null) {
+                        int k = startingFriend2.fnum;
+                        if ( !visited[k] ) {
+                           visited[k] = true;
+                           if ( g.members[k].student == true ) {
+                             if ( g.members[k].school.equals( g.members[j].school ) ) {
+                                cliques.add(g.members[k].name);  
+                             }
+                           }
+                        }
+                        startingFriend2 = startingFriend2.next;
+                    }   
+                }
+            }
+        }
+        */
+
+    }
+
+
+    public static ArrayList<ArrayList<String>> cliques(Graph g, String school) {
+
+        // Create a new arraylist for clique groups and initialize the boolean.
+        ArrayList<ArrayList<String>> groupOfCliques = new ArrayList<ArrayList<String>>();
+        personVisitedArr = new boolean[g.members.length];
+        for(int i = 0; i < g.members.length; i++) {
+            personVisitedArr[i] = false;
+        }
+
+        /*
+        for(int i = 0; i < g.members.length; i++) {
+            Person p = g.members[i];
+            System.out.print( ">>> (" + i + ") " + p.name + " : " + p.student + " : " + p.school + " : " ) ;
+            Friend f = p.first;
+            while ( f != null ) {
+                System.out.print( f.fnum + ", " );
+                f = f.next;
+            }
+            System.out.println();
+        }
+        */
+
+        // Traverse and see if student is a student. If so, make sure that you get the clique of that student and that whenever you add a clique,
+        // you do not have repeated students.
+
+        for(int i = 0; i < g.members.length; i++) {
+            if ( !personVisitedArr[i] ) {
+                cliques = new ArrayList<String>();
+                traverse(g, school, i);
+                if ( cliques != null && cliques.size() != 0 ) {
+                    groupOfCliques.add( cliques );    
+                }
+            }
+        }
+
+        if ( groupOfCliques.size() == 0 ) groupOfCliques = null;
+        return groupOfCliques;
+    }
+    
+    /**
+     * Finds and returns all connectors in the graph.
+     * 
+     * @param g Graph for which connectors needs to be found.
+     * @return Names of all connectors. Null or empty array list if there are no connectors.
+     */
+    private static boolean[] visited;
+    private static ArrayList<String> connectors;
+    private static int[] dfsnum;
+    private static int[] back;
+    private static int dfsCount = 1;
+    private static String startingName= "";
+
+    private static void NOT_USED_DFS(Graph g, int v) {
+
+        dfsnum[v] = dfsCount;
+        back[v] = dfsCount;
+        visited[v] = true;
+        dfsCount++;
+
+        //System.out.println( "dfs: (" +  v + ") " + g.members[v].name + " @  " + dfsnum[v]  + "/" + back[v]);
+
+        Friend f = g.members[v].first;
+        while( f != null) {
+            int w = f.fnum;
+            //System.out.println( "   >>>>>  " + g.members[v].name );
+            //Already visited
+            if ( visited[w] ){
+                if ( back[v] > dfsnum[w] ){
+                    back[v] = dfsnum[w] ;
+                } 
+                //System.out.println( "         " + g.members[w].name  + " is alread Visited => " + g.members[v].name + "  " + dfsnum[v]  + "/" + back[v]);
+            } else {
+                NOT_USED_DFS(g, w);
+            }
+            //Backing out from a neighbour
+            //System.out.println(  g.members[w].name  + " done with and v " + g.members[v].name + "  (" + dfsnum[v]  + "/" + back[v]   + ")   w = (" +  dfsnum[w]  + "/" + back[w]   + ") ");
+            if ( dfsnum[v] > back[w] ){
+                if ( back[v] > back[w] ){
+                    back[v] = back[w] ;
+                } 
+            }/*
+            if ( dfsnum[w] <= back[v] ){
+                //System.out.println( ">>>>>>>>>>>>>>>   " + dfsnum[v] + " : " + back[w] );
+                if ( ! connectors.contains( g.members[w].name ) ) {  //&& g.members[w].first.next != null ) {
+                    System.out.println( "       " +  dfsnum[w] + " <= " + back[v] + "             Add >> " + g.members[w].name );
+                    connectors.add(g.members[w].name);
+                }
+            }*/
+            if ( dfsnum[v] <= back[w]  ) {
+                if ( !startingName.equals( g.members[v].name) ){
+                    if ( ! connectors.contains( g.members[v].name ) ) { 
+                        //System.out.println( "                      >>>>   Adding CONNECTOR >> " + g.members[v].name );
+                        connectors.add(g.members[v].name);
+                    }
+                } 
+                else {
+                    
+                    //if ( g.members[v].first.next != null ){
+                    //if ( dfsnum[v] == back[v] && g.members[v].first.next != null ){
+                    if ( back[v] < back[w]  && g.members[v].first.next != null ){
+                        if ( ! connectors.contains( g.members[v].name ) ) { //&& g.members[v].first.next != null ) {
+                            //System.out.println( "                    Start CONNECTOR " + g.members[v].name );
+                            connectors.add(g.members[v].name);
+                        }
+                    } 
+                    //System.out.println( "XXXX   Did not add " + g.members[v].name + " since Starting Node  v (" + dfsnum[v] + "/" + back[v] + ")  :  w : (" + dfsnum[w] + "/" + back[w] + ")" );
+                }
+            }
+
+            f = f.next;
+        /*
+            if ( dfsnum[index]  < back[index] && dfsnum[index] == index ) {
+                return;
+            } else {
+                if ( !visited[j] ) {
+                    visited[j] = true;
+                    dfsnum[index] = j;
+                    back[index] = dfsnum[index];
+                    DFS(g, dfsnum[index]);
+                    //DFS(g, j);
+                  } else {
+                    dfsnum[index] = j;
+                    if ( dfsnum[index] == back[index] + 1 ) {
+                        connectors.add( g.members[back[index]].name );
+                    }
+                    dfsnum[index] = back[index];        
+                }
+            }
+            */
+        }
+
+    }
+
+    private static int[] parent;
+
+    private static void DFS(Graph g, int v) {
+        int counter = 0;
+        boolean isConnector = false;
+        dfsnum[v]  = dfsCount;
+        back[v]    = dfsCount;
+        dfsCount++;
+        visited[v] = true;
+        //System.out.println(">>     Processing:  (v) : " + g.members[v].name);
+
+        Friend f = g.members[v].first;
+        while( f != null) {
+            int w = f.fnum;
+            //System.out.println(">>             Processing:  (w) : " + g.members[w].name+ " visited? " + visited[w] );
+
+            if ( ! visited[w] ){
+                parent[w] = v;
+                DFS(g, w);
+                counter++;
+                //System.out.println(">>             Processing:  (w) : " + g.members[w].name + " v = " + dfsnum[v] + "/" + back[v] + "    w  = " + dfsnum[w] + "/" + back[w] );
+                if ( back[w] >= dfsnum[v] ) {
+                    isConnector = true;
+                }
+                //if ( dfsnum[v] > back[w] ) 
+                    if ( back[v] > back[w] ) back[v] = back[w];
+            } else if ( w != parent[v] ) {
+                if ( back[v] > dfsnum[w] )   back[v] = dfsnum[w] ;
+            }
+
+            f = f.next;
+        }
+        //System.out.println( "                                    >>>>>>>>>>>>>>   " + isConnector  + " : " + parent[v] + " : " + childCount );
+        if ( ( parent[v] != -1 && isConnector ) || ( parent[v] == -1 && counter > 1 ) ){
+            if ( ! connectors.contains( g.members[v].name ) )  {
+                connectors.add(g.members[v].name);
+            }
+        }
+        //System.out.println(">>Done Processing:  (v) : " + g.members[v].name);
+
+    }
+
+    
+    /*
+    private static Stack<String> stack2 = new Stack<String>();
+
+    private static void DFS(Graph g, int v) {
+        dfsnum[v]  = dfsCount;
+        back[v]    = dfsCount;
+        dfsCount++;
+        visited[v] = true;
+        stack2.push( g.members[v].name );
+
+        Friend f = g.members[v].first;
+        while( f != null) {
+            int w = f.fnum;
+
+            if ( ! visited[w] ) {
+                DFS(g, w);
+                if ( back[v] > back[w] )   back[v] = back[w];
+                if ( back[w] >= dfsnum[v] ) {
+                    if ( ! connectors.contains( g.members[v].name )  && g.members[v].first.next != null )  
+                        connectors.add(g.members[v].name);
+                }
+            } else {
+                boolean isParent = false;
+                String p1 = stack2.peek();
+                if ( ! p1.equals( g.members[v].name ) ) {
+                    if ( back[v] > dfsnum[w] )   back[v] = dfsnum[w] ;
+                }
+            }
+            f = f.next;
+        }
+        stack2.pop();
+    }
+    */
+
+    public static ArrayList<String> connectors(Graph g) {
+        visited = new boolean[g.members.length];
+        connectors = new ArrayList<String>();
+        dfsnum = new int[g.members.length];
+        back   = new int[g.members.length];
+        parent = new int[g.members.length];
+        for (int i=0; i< g.members.length; i++ ) parent[i] = -1;
+        dfsCount = 1;
+
+        for(int i = 0; i < g.members.length; i++) {
+            if ( !visited[i] ) {
+                dfsCount = 1;
+                startingName = g.members[i].name;
+
+                DFS(g, i);
+            }
+        }
+
+        if ( connectors != null && connectors.size() == 0 ) connectors = null;
+
+        return connectors;
+    }
+}
